@@ -1,0 +1,33 @@
+##Selecting the data column
+SELECT
+  pizza_name,
+  pizza_category,
+  pizza_size,
+  FORMAT_DATE('%A', order_date) AS order_day,
+  FORMAT_TIME('%R', TIME_TRUNC(order_time, HOUR)) AS order_time,
+  quantity*unit_price AS total_sales
+FROM
+  `pizza-379316.pizzadata.Pizza_Sales`
+
+##Split ingredients column and use unnest to put one row to each ingredient
+SELECT
+  pizza_name,
+  TRIM(REPLACE( a, (
+      SELECT
+        b
+      FROM
+        `pizza-379316.pizzadata.Pizza_Sales`,
+        UNNEST(SPLIT(pizza_ingredients, ',')) AS b
+      WHERE
+        LOWER(pizza_ingredients) LIKE '%duja%'
+      LIMIT
+        1), 'Duja Salami' )) AS Ingredients,
+  count (a) AS total_count
+FROM
+  `pizza-379316.pizzadata.Pizza_Sales`,
+  UNNEST(SPLIT(pizza_ingredients, ',')) AS a
+GROUP BY
+  2,
+  1
+ORDER BY
+  3 desc
